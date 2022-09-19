@@ -10,7 +10,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use((req, res, next) => {
   req.user = {
-    _id: '63261791ac7cff766cb33896' // вставьте сюда _id созданного в предыдущем пункте пользователя
+    _id: '63261791ac7cff766cb33896',
   };
 
   next();
@@ -19,14 +19,11 @@ app.use((req, res, next) => {
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-
-app.all('*', function(req, res){
-  res.status(404).send({"message":'whatdoyouwant'});
+app.all('*', (req, res) => {
+  res.status(404).send({
+    message: 'whatdoyouwant',
+  });
 });
 
-
-
 app.listen(3000, () => {
-  console.log('Ссылка на сервер:');
-  console.log(3000);
 });

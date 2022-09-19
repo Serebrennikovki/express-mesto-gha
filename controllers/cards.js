@@ -1,4 +1,5 @@
 const Card = require('../models/card');
+
 const ERROR_CODE_VALIDATION = 400;
 const ERROR_CODE_AVAILABILITY = 404;
 const ERROR_CODE_DEFAULT = 500;
@@ -6,11 +7,11 @@ const ERROR_CODE_DEFAULT = 500;
 
 module.exports.getCards = (req,res) =>{
   Card.find({})
-    .then(cards=>res.send(cards))
+    .then( cards => res.send(cards))
     .catch(error=>res.status(ERROR_CODE_DEFAULT).send({'message': error.message}))
 }
 
-module.exports.getCard = (req,res) => {
+module.exports.getCard = (req, res) => {
   Card.findById(req.params.cardId)
     .then((card)=> {
         return res.send(card);
