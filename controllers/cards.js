@@ -13,16 +13,14 @@ module.exports.getCards = (req,res) =>{
 module.exports.getCard = (req,res) => {
   Card.findById(req.params.cardId)
     .then((card)=> {
-      if(card){
         return res.send(card);
-      }
-      else{
-        return res.status(ERROR_CODE_AVAILABILITY).send({message:`Карточка с указанным ${req.params.cardId} не найдена.`})
-      }
       })
     .catch((error)=>{
       if(error.name === "ValidatorError"){
         return res.status(ERROR_CODE_VALIDATION).send({'message': "Переданы некорректные данные при создании карточки"})
+      }
+      else if(error.name === 'CastError'){
+        return res.status(ERROR_CODE_AVAILABILITY).send({message:`Карточка с указанным ${req.params.cardId} не найдена.`})
       }
       else{
         return res.status(ERROR_CODE_DEFAULT).send({'message': error.message})
@@ -49,15 +47,14 @@ module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
   { new: true },
 )
   .then((newCard) => {
-    if(newCard){
-    return res.send(newCard);}
-    else{
-      return res.status(ERROR_CODE_AVAILABILITY).send({message:`Карточка с указанным ${req.params.cardId} не найдена.`});
-    }
-    })
+    return res.send(newCard);
+  })
     .catch((error)=>{
       if(error.name === "ValidationError"){
         return res.status(ERROR_CODE_VALIDATION).send({'message': "Переданы некорректные данные при создании карточки"})
+      }
+      else if (error.name === 'CastError'){
+        return res.status(ERROR_CODE_AVAILABILITY).send({'message':`Карточка с указанным ${req.params.cardId} не найдена.`});
       }
       else{
         return res.status(ERROR_CODE_DEFAULT).send({'message': error})
@@ -74,12 +71,15 @@ module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
   if(newCard){
   return res.send(newCard);}
   else{
-    return res.status(ERROR_CODE_AVAILABILITY).send({message:`Карточка с указанным ${req.params.cardId} не найдена.`});
+    return res.status(ERROR_CODE_AVAILABILITY).send({'message':`Карточка с указанным ${req.params.cardId} не найдена.`});
   }
   })
   .catch((error)=>{
     if(error.name === "ValidationError"){
       return res.status(ERROR_CODE_VALIDATION).send({'message': "Переданы некорректные данные при создании карточки"})
+    }
+    else if (error.name === 'CastError'){
+      return res.status(ERROR_CODE_AVAILABILITY).send({'message':`Карточка с указанным ${req.params.cardId} не найдена.`});
     }
     else{
       return res.status(ERROR_CODE_DEFAULT).send({'message': error})

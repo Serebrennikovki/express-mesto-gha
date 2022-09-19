@@ -13,14 +13,15 @@ module.exports.getUsers = (req,res) =>{
 module.exports.getUser = (req,res) => {
   User.findById(req.params.userId)
     .then((userInfo) => {
-      if(userInfo){
         return res.send(userInfo);
-      }
-      else{
-        return res.status(ERROR_CODE_AVAILABILITY).send({'message': `Пользователь по указанному ${req.params.userId} не найден`});
-      }
       })
-      .catch(error=>res.status(ERROR_CODE_DEFAULT).send({'message': error.message}))
+      .catch(error=>{
+        if(error.name === 'CastError'){
+          return res.status(ERROR_CODE_AVAILABILITY).send({'message': `Пользователь по указанному ${req.params.userId} не найден`});
+        }
+        else{res.status(ERROR_CODE_DEFAULT).send({'message': error})}
+      }
+        )
 }
 
 module.exports.postUser = (req,res) =>{
