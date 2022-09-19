@@ -47,14 +47,14 @@ module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
   { new: true },
 )
   .then((newCard) => {
-    return res.send(newCard);
+    if(newCard){
+      return res.send(newCard);
+    }
+    return res.status(ERROR_CODE_AVAILABILITY).send({'message':`Карточка с указанным ${req.params.cardId} не найдена.`});
   })
     .catch((error)=>{
-      if(error.name === "ValidationError"){
+      if (error.name === 'CastError'){
         return res.status(ERROR_CODE_VALIDATION).send({'message': "Переданы некорректные данные при создании карточки"})
-      }
-      else if (error.name === 'CastError'){
-        return res.status(ERROR_CODE_AVAILABILITY).send({'message':`Карточка с указанным ${req.params.cardId} не найдена.`});
       }
       else{
         return res.status(ERROR_CODE_DEFAULT).send({'message': error})
@@ -75,13 +75,27 @@ module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
   }
   })
   .catch((error)=>{
-    if(error.name === "ValidationError"){
-      return res.status(ERROR_CODE_VALIDATION).send({'message': "Переданы некорректные данные при создании карточки"})
-    }
-    else if (error.name === 'CastError'){
-      return res.status(ERROR_CODE_AVAILABILITY).send({'message':`Карточка с указанным ${req.params.cardId} не найдена.`});
+   if (error.name === 'CastError'){
+      return res.status(ERROR_CODE_VALIDATION).send({'message':"Переданы некорректные данные при создании карточки"});
     }
     else{
       return res.status(ERROR_CODE_DEFAULT).send({'message': error})
     }
 })
+module.exports.deleteCard = (req, res) => Card.findByIdAndRemove(req.params.cardId)
+  .then((deleteCard)=>{
+    if(deleteCard){
+      res.send(deleteCard);
+    }
+    else{
+      return res.status(ERROR_CODE_AVAILABILITY).send({'message':`Карточка с указанным ${req.params.cardId} не найдена.`});
+    }
+  })
+  .catch((error)=>{
+    if (error.name === 'CastError'){
+       return res.status(ERROR_CODE_VALIDATION).send({'message':"Переданы некорректные данные при создании карточки"});
+     }
+     else{
+       return res.status(ERROR_CODE_DEFAULT).send({'message': error})
+     }
+ })
