@@ -10,7 +10,7 @@ module.exports.getUsers = (req, res) => {
       res.send(users);
     })
     .catch((error) => {
-      res.status(ERROR_CODE_DEFAULT).send({ message: error.message});
+      res.status(ERROR_CODE_DEFAULT).send({ message: error.message });
     });
 };
 
@@ -45,7 +45,7 @@ module.exports.postUser = (req, res) => {
 };
 
 module.exports.updateUser = (req, res) => {
-  const {name, about } = req.body;
+  const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((newUserInfo) => { res.send(newUserInfo); })
     .catch((error) => {
