@@ -13,11 +13,14 @@ module.exports.getUsers = (req,res) =>{
 module.exports.getUser = (req,res) => {
   User.findById(req.params.userId)
     .then((userInfo) => {
+      if(userInfo){
         return res.send(userInfo);
+      }
+      return res.status(ERROR_CODE_AVAILABILITY).send({'message': `Пользователь по указанному ${req.params.userId} не найден` });
       })
       .catch(error=>{
         if(error.name === 'CastError'){
-          return res.status(ERROR_CODE_AVAILABILITY).send({'message': `Пользователь по указанному ${req.params.userId} не найден`});
+          return res.status(ERROR_CODE_VALIDATION).send({'message': "Переданы некорректные данные при создании пользователя"})
         }
         else{res.status(ERROR_CODE_DEFAULT).send({'message': error})}
       }
@@ -43,7 +46,7 @@ module.exports.postUser = (req,res) =>{
 module.exports.updateUser = (req,res) => {
   console.log(req.body,req.user._id);
   const {name, about} = req.body;
-  User.findByIdAndUpdate(req.user._id, {name,about})
+  User.findByIdAndUpdate(req.user._id, {name,about}, {new: true, runValidators: true})
     .then(newUserInfo=>res.send(newUserInfo))
     .catch((error)=>{
       if(error.name === "ValidationError"){
@@ -56,7 +59,7 @@ module.exports.updateUser = (req,res) => {
 }
 module.exports.updateUserAvatar = (req,res) => {
   const {avatar} = req.body;
-  User.findByIdAndUpdate(req.user._id, {avatar})
+  User.findByIdAndUpdate(req.user._id, {avatar}, {new: true, runValidators: true})
     .then(newUserInfo=>res.send(newUserInfo))
     .catch((error)=>{
       if(error.name === "ValidationError"){
