@@ -20,6 +20,11 @@ app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
 
+app.all('*', function(req, res){
+  res.status(404).send({"message":'whatdoyouwant'});
+});
+
+
 
 app.listen(3000, () => {
   console.log('Ссылка на сервер:');
