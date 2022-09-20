@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const express = require('express');
 const bodyParser = require('body-parser');
 
+const { PORT = 3000 } = process.env;
+
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -21,9 +23,9 @@ app.use('/cards', require('./routes/cards'));
 
 app.all('*', (req, res) => {
   res.status(404).send({
-    message: 'whatdoyouwant',
+    message: 'такого маршрута не существует',
   });
 });
 
-app.listen(3000, () => {
+app.listen(PORT, () => {
 });

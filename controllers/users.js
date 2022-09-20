@@ -1,16 +1,13 @@
 const User = require('../models/user');
-
-const ERROR_CODE_VALIDATION = 400;
-const ERROR_CODE_AVAILABILITY = 404;
-const ERROR_CODE_DEFAULT = 500;
+const { ERROR_CODE_VALIDATION, ERROR_CODE_AVAILABILITY, ERROR_CODE_DEFAULT } = require('../utils/error-code');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => {
       res.send(users);
     })
-    .catch((error) => {
-      res.status(ERROR_CODE_DEFAULT).send({ message: error.message });
+    .catch(() => {
+      res.status(ERROR_CODE_DEFAULT).send({ message: 'Упс. Что-то пошло нет.' });
     });
 };
 
@@ -24,9 +21,9 @@ module.exports.getUser = (req, res) => {
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        return res.status(ERROR_CODE_VALIDATION).send({ message: 'Переданы некорректные данные при создании пользователя' });
+        return res.status(ERROR_CODE_VALIDATION).send({ message: 'Передан некорректный id' });
       }
-      return res.status(ERROR_CODE_DEFAULT).send({ message: error });
+      return res.status(ERROR_CODE_DEFAULT).send({ message: 'Упс. Что-то пошло нет.' });
     });
 };
 
@@ -40,7 +37,7 @@ module.exports.postUser = (req, res) => {
       if (error.name === 'ValidationError') {
         return res.status(ERROR_CODE_VALIDATION).send({ message: 'Переданы некорректные данные при создании пользователя' });
       }
-      return res.status(ERROR_CODE_DEFAULT).send({ message: error });
+      return res.status(ERROR_CODE_DEFAULT).send({ message: 'Упс. Что-то пошло нет.' });
     });
 };
 
@@ -52,7 +49,7 @@ module.exports.updateUser = (req, res) => {
       if (error.name === 'ValidationError') {
         return res.status(ERROR_CODE_VALIDATION).send({ message: 'Переданы некорректные данные при обновлении профиля' });
       }
-      return res.status(ERROR_CODE_DEFAULT).send({ message: error });
+      return res.status(ERROR_CODE_DEFAULT).send({ message: 'Упс. Что-то пошло нет.' });
     });
 };
 
@@ -64,6 +61,6 @@ module.exports.updateUserAvatar = (req, res) => {
       if (error.name === 'ValidationError') {
         return res.status(ERROR_CODE_VALIDATION).send({ message: 'Переданы некорректные данные при обновлении аватара' });
       }
-      return res.status(ERROR_CODE_DEFAULT).send({ message: error });
+      return res.status(ERROR_CODE_DEFAULT).send({ message: 'Упс. Что-то пошло нет.' });
     });
 };
