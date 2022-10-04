@@ -40,7 +40,7 @@ module.exports.createUser = (req, res, next) => {
       User.create({
         name, about, avatar, email, password: hash,
       })
-        .then((userInfo) => { res.send({ data: userInfo }); })
+        .then((userInfo) => { res.status(201).send({ data: userInfo }); })
         .catch((err) => {
           if (err.name === 'ValidationError') {
             next(new ValidationError('Не правильно введены пароль или почта'));
@@ -84,10 +84,10 @@ module.exports.loginUser = function (req, res, next) {
         throw new ValidationError('Неправильные почта или пароль');
       }
       const token = jwt.sign({ _id: userData._id }, SECRET_KEY, { expiresIn: '7d' });
-      return res.cookie('jwt', token, {
+      return res.status(201).cookie('jwt', token, {
         maxAge: 3600000 * 24 * 7,
         httpOnly: true,
-      }).end();
+      }).send({ jwt: token });
     })
     .catch(next);
 };

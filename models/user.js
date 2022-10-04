@@ -31,17 +31,17 @@ const userSchema = new mongoose.Schema({
     unique: true,
     required: true,
     validate(value) {
+      console.log(value);
       if (!validator.isEmail(value)) {
-        throw new ValidationError();
+        throw new ValidationError('некорректная почта');
       }
     },
   },
   password:
   {
     type: String,
-    required: true,
-    minlength: 6,
     select: false,
+    required: true,
   },
 });
 
