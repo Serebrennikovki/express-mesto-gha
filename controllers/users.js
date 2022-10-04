@@ -1,66 +1,93 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { ERROR_CODE_VALIDATION, ERROR_CODE_AVAILABILITY, ERROR_CODE_DEFAULT } = require('../utils/error-code');
+const EmailExistError = require('../errors/emailExistError');
+const ValidationError = require('../errors/validationError');
+const NotFoundError = require('../errors/notFoundError');
 
-module.exports.getUsers = (req, res) => {
+const SECRET_KEY = 'LMLJVJVVFDSKVJKDSFJV';
+
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
       res.send(users);
     })
-    .catch(() => {
-      res.status(ERROR_CODE_DEFAULT).send({ message: 'Упс. Что-то пошло нет.' });
-    });
+    .catch(next);
 };
 
-module.exports.getUser = (req, res) => {
-  User.findById(req.params.userId)
+module.exports.getUser = (req, res, next) => {
+  User.findById(req.user._id)
     .then((userInfo) => {
-      if (userInfo) {
-        return res.send(userInfo);
+      if (!userInfo) {
+        next(new NotFoundError(`Пользователь по указанному ${req.params.userId} не найден`));
       }
-      return res.status(ERROR_CODE_AVAILABILITY).send({ message: `Пользователь по указанному ${req.params.userId} не найден` });
+      return res.send(userInfo);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        return res.status(ERROR_CODE_VALIDATION).send({ message: 'Передан некорректный id' });
+        next(new ValidationError('Передан некорректный id'));
       }
-      return res.status(ERROR_CODE_DEFAULT).send({ message: 'Упс. Что-то пошло нет.' });
+      next(error);
     });
 };
 
-module.exports.postUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
-    name, about, avatar,
+    name, about, avatar, email, password,
   } = req.body;
-  User.create({ name, about, avatar })
-    .then((userInfo) => { res.send({ data: userInfo }); })
-    .catch((error) => {
-      if (error.name === 'ValidationError') {
-        return res.status(ERROR_CODE_VALIDATION).send({ message: 'Переданы некорректные данные при создании пользователя' });
-      }
-      return res.status(ERROR_CODE_DEFAULT).send({ message: 'Упс. Что-то пошло нет.' });
+  bcrypt.hash(password, 10)
+    .then((hash) => {
+      User.create({
+        name, about, avatar, email, password: hash,
+      })
+        .then((userInfo) => { res.send({ data: userInfo }); })
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            next(new ValidationError('Не правильно введены пароль или почта'));
+          } else if (err.code === 11000) {
+            next(new EmailExistError('данный email, уже зарегистрирован'));
+          }
+          next(err);
+        });
     });
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((newUserInfo) => { res.send(newUserInfo); })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(ERROR_CODE_VALIDATION).send({ message: 'Переданы некорректные данные при обновлении профиля' });
+        next(new ValidationError('Переданы некорректные данные при обновлении профиля'));
       }
-      return res.status(ERROR_CODE_DEFAULT).send({ message: 'Упс. Что-то пошло нет.' });
+      next(error);
     });
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((newUserInfo) => { res.send(newUserInfo); })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(ERROR_CODE_VALIDATION).send({ message: 'Переданы некорректные данные при обновлении аватара' });
+        next(new ValidationError('Переданы некорректные данные при обновлении аватара'));
       }
-      return res.status(ERROR_CODE_DEFAULT).send({ message: 'Упс. Что-то пошло нет.' });
+      next(error);
     });
+};
+
+module.exports.loginUser = function (req, res, next) {
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
+    .then((userData) => {
+      if (!userData) {
+        throw new ValidationError('Неправильные почта или пароль');
+      }
+      const token = jwt.sign({ _id: userData._id }, SECRET_KEY, { expiresIn: '7d' });
+      return res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+      }).end();
+    })
+    .catch(next);
 };
