@@ -113,5 +113,8 @@ module.exports.loginUser = function (req, res, next) {
         httpOnly: true,
       }).send({ jwt: token });
     })
-    .catch(next);
+    .catch((err) => {
+      console.log(err);
+      next(err);
+    });
 };
