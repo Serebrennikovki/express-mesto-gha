@@ -15,8 +15,24 @@ module.exports.getUsers = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.getUser = (req, res, next) => {
+module.exports.getUserMe = (req, res, next) => {
   User.findById(req.user._id)
+    .then((userInfo) => {
+      if (!userInfo) {
+        next(new NotFoundError(`Пользователь по указанному ${req.user._id} не найден`));
+      }
+      return res.send(userInfo);
+    })
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        next(new ValidationError('Передан некорректный id'));
+      }
+      next(error);
+    });
+};
+
+module.exports.getUser = (req, res, next) => {
+  User.findById(req.params.userId)
     .then((userInfo) => {
       if (!userInfo) {
         next(new NotFoundError(`Пользователь по указанному ${req.params.userId} не найден`));
@@ -40,7 +56,15 @@ module.exports.createUser = (req, res, next) => {
       User.create({
         name, about, avatar, email, password: hash,
       })
-        .then((userInfo) => { res.status(201).send({ data: userInfo }); })
+        .then((userInfo) => {
+          res.send({
+            _id: userInfo._id,
+            name: userInfo.name,
+            about: userInfo.about,
+            avatar: userInfo.avatar,
+            email: userInfo.email,
+          });
+        })
         .catch((err) => {
           if (err.name === 'ValidationError') {
             next(new ValidationError('Не правильно введены пароль или почта'));
@@ -84,7 +108,7 @@ module.exports.loginUser = function (req, res, next) {
         throw new ValidationError('Неправильные почта или пароль');
       }
       const token = jwt.sign({ _id: userData._id }, SECRET_KEY, { expiresIn: '7d' });
-      return res.status(201).cookie('jwt', token, {
+      return res.status(200).cookie('jwt', token, {
         maxAge: 3600000 * 24 * 7,
         httpOnly: true,
       }).send({ jwt: token });
