@@ -19,15 +19,14 @@ module.exports.getUserMe = (req, res, next) => {
   User.findById(req.user._id)
     .then((userInfo) => {
       if (!userInfo) {
-        next(new NotFoundError(`Пользователь по указанному ${req.user._id} не найден`));
+        throw new NotFoundError(`Пользователь по указанному ${req.user._id} не найден`);
       }
       return res.send(userInfo);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
         next(new ValidationError('Передан некорректный id'));
-      }
-      next(error);
+      } else { next(error); }
     });
 };
 
@@ -35,15 +34,14 @@ module.exports.getUser = (req, res, next) => {
   User.findById(req.params.userId)
     .then((userInfo) => {
       if (!userInfo) {
-        next(new NotFoundError(`Пользователь по указанному ${req.params.userId} не найден`));
+        throw new NotFoundError(`Пользователь по указанному ${req.params.userId} не найден`);
       }
       return res.send(userInfo);
     })
     .catch((error) => {
       if (error.name === 'CastError') {
         next(new ValidationError('Передан некорректный id'));
-      }
-      next(error);
+      } else { next(error); }
     });
 };
 
@@ -68,10 +66,10 @@ module.exports.createUser = (req, res, next) => {
         .catch((err) => {
           if (err.name === 'ValidationError') {
             next(new ValidationError('Не правильно введены пароль или почта'));
-          } else if (err.code === 11000) {
+          } else { next(err); }
+          if (err.code === 11000) {
             next(new EmailExistError('данный email, уже зарегистрирован'));
-          }
-          next(err);
+          } else { next(err); }
         });
     });
 };
@@ -83,8 +81,7 @@ module.exports.updateUser = (req, res, next) => {
     .catch((error) => {
       if (error.name === 'ValidationError') {
         next(new ValidationError('Переданы некорректные данные при обновлении профиля'));
-      }
-      next(error);
+      } else { next(error); }
     });
 };
 
@@ -95,8 +92,7 @@ module.exports.updateUserAvatar = (req, res, next) => {
     .catch((error) => {
       if (error.name === 'ValidationError') {
         next(new ValidationError('Переданы некорректные данные при обновлении аватара'));
-      }
-      next(error);
+      } else { next(error); }
     });
 };
 

@@ -29,7 +29,7 @@ module.exports.likeCard = (req, res, next) => Card.findByIdAndUpdate(
 )
   .then((newCard) => {
     if (!newCard) {
-      next(new NotFoundError(`Карточка с указанным ${req.params.cardId} не найдена.`));
+      throw new NotFoundError(`Карточка с указанным ${req.params.cardId} не найдена.`);
     }
     return res.send(newCard);
   })
@@ -65,19 +65,13 @@ module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        next(new NotFoundError(`Карточка с указанным ${req.params.cardId} не найдена.`));
+        throw new NotFoundError(`Карточка с указанным ${req.params.cardId} не найдена.`);
       }
       if (req.user._id !== card.owner.toString()) {
-        next(new NoRightsError(`Карточка с указанным ${req.params.cardId} не может быть удалена. Нет прав.`));
+        throw new NoRightsError(`Карточка с указанным ${req.params.cardId} не может быть удалена. Нет прав.`);
       }
       return Card.findByIdAndRemove(req.params.cardId)
-        .then((deleteCard) => res.send(deleteCard))
-        .catch((error) => {
-          if (error.name === 'CastError') {
-            next(new ValidationError('Передан некорректный id карточки'));
-          }
-          next(error);
-        });
+        .then((deleteCard) => res.send(deleteCard));
     })
     .catch((error) => {
       if (error.name === 'CastError') {
