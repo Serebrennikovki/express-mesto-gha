@@ -66,9 +66,8 @@ module.exports.createUser = (req, res, next) => {
         .catch((err) => {
           if (err.name === 'ValidationError') {
             next(new ValidationError('Не правильно введены пароль или почта'));
-          } else { next(err); }
-          if (err.code === 11000) {
-            next(new EmailExistError('данный email, уже зарегистрирован'));
+          } else if (err.code === 11000) {
+            next(new EmailExistError('Данный email уже зарегистрирован'));
           } else { next(err); }
         });
     });
@@ -110,7 +109,6 @@ module.exports.loginUser = function (req, res, next) {
       }).send({ jwt: token });
     })
     .catch((err) => {
-      console.log(err);
       next(err);
     });
 };
