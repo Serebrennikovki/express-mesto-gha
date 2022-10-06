@@ -36,8 +36,8 @@ app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.all('*', () => {
-  throw new NotFoundError('такого маршрута не существует');
+app.all('*', (res, req, next) => {
+  next(new NotFoundError('такого маршрута не существует'));
 });
 
 app.use(errors());

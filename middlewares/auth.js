@@ -6,14 +6,14 @@ const SECRET_KEY = 'LMLJVJVVFDSKVJKDSFJV';
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    throw new UnAuthorizedError('необходимо авторизоваться');
+    return next(new UnAuthorizedError('Необходимо авторизоваться'));
   }
   const token = authorization.replace('Bearer ', '');
   let payload;
   try {
     payload = jwt.verify(token, SECRET_KEY);
   } catch (err) {
-    next(new UnAuthorizedError('необходимо авторизоваться'));
+    next(new UnAuthorizedError('Необходимо авторизоваться'));
   }
   req.user = payload;
   next();
